@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hirecraft — Find Work That Means Something</title>
+<meta name="description" content="Curated job opportunities from companies genuinely building the future. No noise, no spam — just the right roles, ranked for you.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ════ PREMIUM ANIMATION LAYER ════ -->
+<div class="hc-orb hc-orb-1" id="hc-orb1"></div>
+<div class="hc-orb hc-orb-2" id="hc-orb2"></div>
+<div id="hc-particles" aria-hidden="true"></div>
+<div id="hc-cursor" aria-hidden="true">
+  <div id="hc-cursor-ring"></div>
+  <div id="hc-cursor-dot"></div>
+</div>
+<div id="hc-loader" role="status" aria-label="Loading Hirecraft">
+  <div class="loader-logo">Hir<em>e</em>craft</div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  <div class="loader-label">Loading opportunities</div>
+</div>
+
+<!-- ════ NAV ════ -->
+<nav>
+  <a class="nav-brand" href="#">Hir<span class="nav-brand-dot">e</span>craft</a>
+  <div class="nav-center">
+    <a class="nav-link" href="#jobs-anchor">Browse Jobs</a>
+    <button class="nav-link" onclick="showProfileModal()">My Profile</button>
+    <button class="nav-link" onclick="showSalaryModal()">Salary Guide</button>
+    <button class="nav-link" onclick="showPostModal()">Companies</button>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn nav-btn-ghost has-badge" onclick="openSavedDrawer()" title="Saved jobs (S)">
+      <span>☆</span> Saved
+      <span class="badge-dot" id="saved-badge"></span>
+    </button>
+    <button class="nav-btn nav-btn-ghost has-badge" onclick="toggleCompareBar()" title="Compare (C)">
+      <span>⚖</span>
+      <span class="badge-dot" id="compare-badge"></span>
+    </button>
+    <div class="nav-divider"></div>
+    <button class="nav-btn nav-btn-ghost" onclick="showPostModal()">Post a Job</button>
+    <button class="nav-btn nav-btn-primary" onclick="showProfileModal()">Get Matched →</button>
+    <button class="nav-mobile-toggle" onclick="showToast('Mobile menu coming soon!','info')">☰</button>
+  </div>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="live-dot"></span>
+      2,400+ roles updated daily
+    </div>
+    <h1>Find work that<br><em>means</em> something</h1>
+    <p class="hero-sub">
+      Curated opportunities from companies genuinely building the future.<br>
+      No noise, no spam — just the right roles, ranked for you.
+    </p>
+    <div class="search-wrap" style="position:relative">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input id="search-input" type="text" placeholder="Job title, skill, or keyword…"
+          oninput="doSearch();renderSuggestions()" autocomplete="off">
+        <div class="search-divider"></div>
+        <select id="loc-filter" onchange="doSearch()">
+          <option>All Locations</option>
+          <option>Remote</option>
+          <option>Bangalore</option>
+          <option>Mumbai</option>
+          <option>Hyderabad</option>
+          <option>Delhi NCR</option>
+          <option>Pune</option>
+          <option>Chennai</option>
+        </select>
+        <button class="btn-search" onclick="doSearch();hideSuggestions()">Search</button>
+      </div>
+      <div class="suggestions-dropdown" id="suggestions"></div>
+    </div>
+    <div class="quick-tags">
+      <span class="quick-tags-label">Try:</span>
+      <button class="quick-tag" onclick="qs('Software Engineer')">Software Engineer</button>
+      <button class="quick-tag" onclick="qs('Data Scientist')">Data Scientist</button>
+      <button class="quick-tag" onclick="qs('Product Manager')">Product Manager</button>
+      <button class="quick-tag" onclick="qs('Designer')">Designer</button>
+      <button class="quick-tag" onclick="qs('Go')">Go / Golang</button>
+      <button class="quick-tag" onclick="qs('Remote')">🌐 Remote only</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-n" id="stat-jobs">0</span>
+        <span class="stat-l">Active jobs</span>
+      </div>
+      <div class="stat">
+        <span class="stat-n" id="stat-cos">0</span>
+        <span class="stat-l">Companies hiring</span>
+      </div>
+      <div class="stat">
+        <span class="stat-n" id="stat-rate">0%</span>
+        <span class="stat-l">Response rate</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ PROFILE BANNER ════ -->
+<div class="profile-banner" id="profile-banner">
+  <div class="profile-banner-avatar" id="banner-avatar">?</div>
+  <div class="profile-banner-text">
+    Welcome back, <strong id="banner-name">—</strong>. Showing your best matches.
+    Skills: <span id="banner-skills"></span>
+  </div>
+  <div class="profile-banner-tags" id="banner-tags"></div>
+  <button class="nav-btn nav-btn-ghost" style="padding:5px 12px;font-size:12px" onclick="showProfileModal()">Edit</button>
+  <button class="profile-banner-close" onclick="document.getElementById('profile-banner').classList.remove('show')">×</button>
+</div>
+
+<!-- ════ FILTER BAR ════ -->
+<div class="filter-bar" id="jobs-anchor">
+  <button class="filter-chip active" data-f="all" onclick="setChipFilter('all',this)">All Jobs</button>
+  <button class="filter-chip" data-f="Full-time" onclick="setChipFilter('Full-time',this)">Full-time</button>
+  <button class="filter-chip" data-f="Remote" onclick="setChipFilter('Remote',this)">🌐 Remote</button>
+  <button class="filter-chip" data-f="Internship" onclick="setChipFilter('Internship',this)">Internship</button>
+  <button class="filter-chip" data-f="Contract" onclick="setChipFilter('Contract',this)">Contract</button>
+  <div class="filter-bar-divider"></div>
+  <button class="filter-chip" data-f="featured" onclick="setChipFilter('featured',this)">⭐ Featured</button>
+  <button class="filter-chip" data-f="new" onclick="setChipFilter('new',this)">🆕 New</button>
+  <div class="filter-bar-spacer"></div>
+  <span class="results-count" id="results-count"></span>
+</div>
+
+<!-- ════ MAIN LAYOUT ════ -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-panel">
+      <div class="panel-hd">
+        <span class="panel-hd-label">Job Type</span>
+        <button class="panel-clear" onclick="clearSidebarGroup('sb-type')">Clear</button>
+      </div>
+      <div id="sb-type">
+        <label class="filter-option"><input type="checkbox" value="Full-time" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Full-time</span><span class="filter-count-badge">8</span></label>
+        <label class="filter-option"><input type="checkbox" value="Remote" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Remote</span><span class="filter-count-badge">3</span></label>
+        <label class="filter-option"><input type="checkbox" value="Internship" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Internship</span><span class="filter-count-badge">1</span></label>
+        <label class="filter-option"><input type="checkbox" value="Contract" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Contract</span><span class="filter-count-badge">0</span></label>
+      </div>
+    </div>
+    <div class="sidebar-panel">
+      <div class="panel-hd">
+        <span class="panel-hd-label">Experience</span>
+        <button class="panel-clear" onclick="clearSidebarGroup('sb-exp')">Clear</button>
+      </div>
+      <div id="sb-exp">
+        <label class="filter-option"><input type="checkbox" value="entry" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Entry (0–2 yrs)</span><span class="filter-count-badge">2</span></label>
+        <label class="filter-option"><input type="checkbox" value="mid" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Mid (2–5 yrs)</span><span class="filter-count-badge">7</span></label>
+        <label class="filter-option"><input type="checkbox" value="senior" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Senior (5+ yrs)</span><span class="filter-count-badge">3</span></label>
+        <label class="filter-option"><input type="checkbox" value="lead" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Lead / Principal</span><span class="filter-count-badge">0</span></label>
+      </div>
+    </div>
+    <div class="sidebar-panel">
+      <div class="panel-hd"><span class="panel-hd-label">Min. Salary</span></div>
+      <div class="range-wrap">
+        <input type="range" id="sal-range" min="5" max="80" value="5"
+          oninput="updateRange(this);applyFilters()">
+        <div class="range-labels"><span>₹5L</span><span>₹80L</span></div>
+        <div class="range-value" id="sal-val">₹5 LPA+</div>
+      </div>
+    </div>
+    <div class="sidebar-panel">
+      <div class="panel-hd">
+        <span class="panel-hd-label">Department</span>
+        <button class="panel-clear" onclick="clearSidebarGroup('sb-dept')">Clear</button>
+      </div>
+      <div id="sb-dept">
+        <label class="filter-option"><input type="checkbox" value="Engineering" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Engineering</span><span class="filter-count-badge">6</span></label>
+        <label class="filter-option"><input type="checkbox" value="Design" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Design</span><span class="filter-count-badge">2</span></label>
+        <label class="filter-option"><input type="checkbox" value="Data & AI" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Data & AI</span><span class="filter-count-badge">2</span></label>
+        <label class="filter-option"><input type="checkbox" value="Product" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Product</span><span class="filter-count-badge">1</span></label>
+        <label class="filter-option"><input type="checkbox" value="Marketing" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Marketing</span><span class="filter-count-badge">1</span></label>
+        <label class="filter-option"><input type="checkbox" value="Finance" onchange="applyFilters()"><div class="custom-checkbox"></div><span class="filter-label">Finance</span><span class="filter-count-badge">1</span></label>
+      </div>
+    </div>
+    <div class="sidebar-panel">
+      <div class="panel-hd"><span class="panel-hd-label">Salary Insights</span></div>
+      <div id="sal-chart">
+        <div class="sal-row"><span class="sal-name">Data & AI</span><div class="sal-track"><div class="sal-fill" data-w="82%"></div></div><span class="sal-num">₹34L avg</span></div>
+        <div class="sal-row"><span class="sal-name">Product</span><div class="sal-track"><div class="sal-fill" data-w="76%"></div></div><span class="sal-num">₹36L avg</span></div>
+        <div class="sal-row"><span class="sal-name">Engineering</span><div class="sal-track"><div class="sal-fill" data-w="70%"></div></div><span class="sal-num">₹27L avg</span></div>
+        <div class="sal-row"><span class="sal-name">Design</span><div class="sal-track"><div class="sal-fill" data-w="58%"></div></div><span class="sal-num">₹27L avg</span></div>
+        <div class="sal-row"><span class="sal-name">Marketing</span><div class="sal-track"><div class="sal-fill" data-w="44%"></div></div><span class="sal-num">₹23L avg</span></div>
+        <div class="sal-row"><span class="sal-name">Finance</span><div class="sal-track"><div class="sal-fill" data-w="36%"></div></div><span class="sal-num">₹16L avg</span></div>
+      </div>
+      <p style="font-size:10px;color:var(--text3);margin-top:10px">Based on current listings</p>
+    </div>
+    <div class="alert-panel">
+      <div class="alert-panel-title">🔔 Job Alerts</div>
+      <div class="alert-panel-text">Get matched roles delivered to your inbox as they go live.</div>
+      <input class="alert-input" id="alert-email" type="email" placeholder="your@email.com">
+      <button class="btn-alert-submit" onclick="submitAlert()">Enable Alerts</button>
+    </div>
+  </aside>
+
+  <!-- JOB LIST -->
+  <main>
+    <div class="list-hd">
+      <div class="list-hd-left">
+        <span class="list-hd-title" id="list-title">All Jobs</span>
+        <span class="list-hd-count" id="list-count"></span>
+      </div>
+      <div class="list-controls">
+        <select class="sort-select" onchange="sortBy(this.value)">
+          <option value="recent">Most Recent</option>
+          <option value="salary">Highest Salary</option>
+          <option value="match">Best Match</option>
+          <option value="deadline">Closing Soon</option>
+        </select>
+        <div class="view-btns">
+          <button class="view-btn on" id="vb-list" onclick="setView('list')" title="List">☰</button>
+          <button class="view-btn" id="vb-grid" onclick="setView('grid')" title="Grid">⊞</button>
+        </div>
+      </div>
+    </div>
+    <div id="jobs-list"></div>
+  </main>
+
+</div>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-name">Hir<span>e</span>craft</div>
+        <p class="footer-tagline">Connecting talented professionals with companies building the future. Curated, transparent, human.</p>
+        <div class="footer-socials">
+          <a class="footer-social-link" href="#">𝕏</a>
+          <a class="footer-social-link" href="#">in</a>
+          <a class="footer-social-link" href="#">gh</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Job Seekers</h5>
+        <a href="#jobs-anchor">Browse Jobs</a>
+        <a onclick="showProfileModal()">Build Profile</a>
+        <a onclick="showSalaryModal()">Salary Guide</a>
+        <a>Resume Tips</a>
+      </div>
+      <div class="footer-col">
+        <h5>Employers</h5>
+        <a onclick="showPostModal()">Post a Job</a>
+        <a onclick="showToast('Starter ₹4,999/mo · Growth ₹14,999/mo · Enterprise — custom','info',5000)">Pricing</a>
+        <a>Hiring Solutions</a>
+        <a>ATS Integration</a>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <a>About</a>
+        <a>Blog</a>
+        <a>Privacy Policy</a>
+        <a>Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Hirecraft, Inc. All rights reserved.</span>
+      <span>Made with care in India 🇮🇳</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ════ APPLY MODAL ════ -->
+<div class="overlay" id="apply-overlay" onclick="closeBg('apply-overlay')">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-hd-title" id="apply-title">Apply</div>
+        <div class="modal-hd-sub" id="apply-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeApply()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="step-bar">
+        <div class="step-seg active" id="ss1"></div>
+        <div class="step-seg" id="ss2"></div>
+        <div class="step-seg" id="ss3"></div>
+      </div>
+      <div id="apply-step-content"></div>
+    </div>
+    <div class="modal-footer" id="apply-footer"></div>
+  </div>
+</div>
+
+<!-- ════ DETAIL MODAL ════ -->
+<div class="overlay" id="detail-overlay" onclick="closeBg('detail-overlay')">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-hd" style="padding:16px 28px">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Job Details</span>
+      <button class="modal-close" onclick="closeDetail()">×</button>
+    </div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<!-- ════ POST JOB MODAL ════ -->
+<div class="overlay" id="post-overlay" onclick="closeBg('post-overlay')">
+  <div class="modal post-modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-hd-title">Post a Job</div>
+        <div class="modal-hd-sub">Reach thousands of qualified candidates</div>
+      </div>
+      <button class="modal-close" onclick="closePost()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-2col">
+        <div class="form-row"><label>Company Name *</label><input class="form-input" id="pj-co" placeholder="Acme Technologies"></div>
+        <div class="form-row"><label>Job Title *</label><input class="form-input" id="pj-title" placeholder="Senior Software Engineer"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-row"><label>Location</label>
+          <select class="form-select" id="pj-loc">
+            <option>Remote</option><option>Bangalore</option><option>Mumbai</option><option>Hyderabad</option><option>Delhi NCR</option><option>Pune</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Type</label>
+          <select class="form-select" id="pj-type">
+            <option>Full-time</option><option>Remote</option><option>Contract</option><option>Internship</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-2col">
+        <div class="form-row"><label>Salary Range (LPA)</label><input class="form-input" id="pj-sal" placeholder="20–35 LPA"></div>
+        <div class="form-row"><label>Experience Required</label><input class="form-input" id="pj-exp" placeholder="3–6 yrs"></div>
+      </div>
+      <div class="form-row"><label>Job Description</label>
+        <textarea class="form-textarea" id="pj-desc" placeholder="Describe the role, responsibilities, and what success looks like…"></textarea>
+      </div>
+      <div class="form-row"><label>Required Skills (comma-separated)</label>
+        <input class="form-input" id="pj-skills" placeholder="React, TypeScript, Node.js">
+      </div>
+      <div class="form-row"><label>Work Email *</label>
+        <input class="form-input" type="email" id="pj-email" placeholder="hiring@company.com">
+      </div>
+      <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:9px;padding:12px 14px;font-size:12px;color:var(--amber);line-height:1.6">
+        🎁 <strong>Free to post</strong> during beta. Reviewed and live within 24 hours.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-ghost" onclick="closePost()">Cancel</button>
+      <button class="btn-modal btn-modal-primary" onclick="submitPost()">Post Job →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PROFILE MODAL ════ -->
+<div class="overlay" id="profile-overlay" onclick="closeBg('profile-overlay')">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-hd-title">My Profile</div>
+        <div class="modal-hd-sub">Personalise your job feed and match score</div>
+      </div>
+      <button class="modal-close" onclick="closeProfile()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Full Name</label><input class="form-input" id="p-name" placeholder="Arjun Sharma"></div>
+      <div class="form-2col">
+        <div class="form-row"><label>Experience Level</label>
+          <select class="form-select" id="p-exp">
+            <option value="">Any</option>
+            <option value="entry">Entry (0–2 yrs)</option>
+            <option value="mid">Mid (2–5 yrs)</option>
+            <option value="senior">Senior (5+ yrs)</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Preferred Location</label>
+          <select class="form-select" id="p-loc">
+            <option value="">Any</option>
+            <option>Remote</option><option>Bangalore</option><option>Mumbai</option><option>Hyderabad</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Your Skills <span style="font-weight:400;color:var(--text3)">(select all that apply)</span></label>
+        <div class="skill-select-grid" id="skill-grid">
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Python</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">JavaScript</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">React</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">TypeScript</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Go</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Java</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">SQL</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Machine Learning</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Figma</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Product Strategy</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Data Analysis</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Kubernetes</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">AWS</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">Node.js</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">UX Research</button>
+          <button class="skill-select-btn" onclick="this.classList.toggle('sel')">PyTorch</button>
+        </div>
+      </div>
+      <div class="form-row"><label>Minimum Salary (LPA)</label>
+        <input class="form-input" type="number" id="p-minsal" placeholder="e.g. 20" min="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-ghost" onclick="closeProfile()">Cancel</button>
+      <button class="btn-modal btn-modal-primary" onclick="saveProfile()">Save & Match →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SALARY GUIDE MODAL ════ -->
+<div class="overlay" id="salary-overlay" onclick="closeBg('salary-overlay')">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-hd-title">Salary Guide 2025</div>
+        <div class="modal-hd-sub">Total compensation ranges — India tech market</div>
+      </div>
+      <button class="modal-close" onclick="closeSalary()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="salary-grid">
+        <div class="salary-card">
+          <div class="salary-card-title">Engineering</div>
+          <div class="salary-row-item"><span>SDE I</span><span>₹10–20 LPA</span></div>
+          <div class="salary-row-item"><span>SDE II</span><span>₹20–35 LPA</span></div>
+          <div class="salary-row-item"><span>Senior SDE</span><span>₹30–55 LPA</span></div>
+          <div class="salary-row-item"><span>Staff Engineer</span><span>₹50–90 LPA</span></div>
+          <div class="salary-row-item"><span>Principal</span><span>₹80L–1.5Cr</span></div>
+        </div>
+        <div class="salary-card">
+          <div class="salary-card-title">Data & AI</div>
+          <div class="salary-row-item"><span>Analyst</span><span>₹8–18 LPA</span></div>
+          <div class="salary-row-item"><span>Data Scientist I</span><span>₹18–30 LPA</span></div>
+          <div class="salary-row-item"><span>Data Scientist II</span><span>₹28–45 LPA</span></div>
+          <div class="salary-row-item"><span>Senior DS</span><span>₹40–70 LPA</span></div>
+          <div class="salary-row-item"><span>ML Lead</span><span>₹60L–1.2Cr</span></div>
+        </div>
+        <div class="salary-card">
+          <div class="salary-card-title">Product</div>
+          <div class="salary-row-item"><span>APM</span><span>₹12–22 LPA</span></div>
+          <div class="salary-row-item"><span>PM</span><span>₹22–40 LPA</span></div>
+          <div class="salary-row-item"><span>Senior PM</span><span>₹35–65 LPA</span></div>
+          <div class="salary-row-item"><span>Director PM</span><span>₹60L–1Cr+</span></div>
+        </div>
+        <div class="salary-card">
+          <div class="salary-card-title">Design</div>
+          <div class="salary-row-item"><span>Jr. Designer</span><span>₹6–15 LPA</span></div>
+          <div class="salary-row-item"><span>Designer</span><span>₹15–28 LPA</span></div>
+          <div class="salary-row-item"><span>Senior Designer</span><span>₹25–45 LPA</span></div>
+          <div class="salary-row-item"><span>Head of Design</span><span>₹50–80 LPA</span></div>
+        </div>
+      </div>
+      <div class="salary-note">
+        📊 Ranges reflect total compensation (TC) including equity/ESOPs for top-tier startups and MNCs in Bangalore/Remote. Metro cities may differ ±15%.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-ghost" onclick="closeSalary()">Close</button>
+      <button class="btn-modal btn-modal-primary" onclick="closeSalary();qs('')">Browse Jobs →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ COMPARE TABLE MODAL ════ -->
+<div class="overlay" id="ctable-overlay" onclick="closeBg('ctable-overlay')">
+  <div class="modal compare-modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-hd-title">Compare</div>
+        <div class="modal-hd-sub" id="ctable-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeCtable()">×</button>
+    </div>
+    <div class="modal-body" style="padding:16px;overflow-x:auto">
+      <div id="ctable-wrap"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-ghost" onclick="closeCtable()">Close</button>
+      <button class="btn-modal btn-modal-outline" onclick="clearCompare();closeCtable()">Clear Compare</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SAVED DRAWER ════ -->
+<div class="saved-overlay" id="saved-overlay" onclick="closeSavedBg(event)">
+  <div class="saved-drawer">
+    <div class="drawer-hd">
+      <span class="drawer-title">Saved Jobs <span id="saved-drawer-count" style="font-size:14px;font-family:'Geist',sans-serif;font-weight:400;color:var(--text3)"></span></span>
+      <button class="modal-close" onclick="closeSavedDrawer()">×</button>
+    </div>
+    <div class="drawer-body" id="saved-drawer-body"></div>
+  </div>
+</div>
+
+<!-- ════ COMPARE BAR ════ -->
+<div class="compare-bar" id="compare-bar">
+  <span class="compare-bar-label">⚖ Compare</span>
+  <div class="compare-slots" id="compare-slots">
+    <div class="cslot" id="cs0">Select a job…</div>
+    <div class="cslot" id="cs1">Select a job…</div>
+    <div class="cslot" id="cs2">Select a job…</div>
+  </div>
+  <button class="btn-compare-go" id="btn-cgo" onclick="openCtable()" disabled>Compare →</button>
+  <button class="btn-compare-discard" onclick="clearCompare()">Discard</button>
+</div>
+
+<!-- ════ TOASTS ════ -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ════ KB HINTS ════ -->
+<div class="kb-hint" id="kb-hint">
+  <div class="kb-hint-title">Keyboard Shortcuts</div>
+  <table>
+    <tr><td>/</td><td>Search</td></tr>
+    <tr><td>S</td><td>Saved jobs</td></tr>
+    <tr><td>C</td><td>Compare bar</td></tr>
+    <tr><td>Esc</td><td>Close modal</td></tr>
+    <tr><td>?</td><td>Toggle hints</td></tr>
+  </table>
+</div>
+
+<!-- ════ CHATBOT ════ -->
+<button class="chat-toggle" onclick="toggleChat()" id="chat-toggle-btn">
+  <span>✦</span>
+</button>
+<div class="chat-widget" id="chat-widget">
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <div class="chat-online-dot"></div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Hirecraft AI</div>
+        <div style="font-size:11px;color:var(--text3);">Online · Helper</div>
+      </div>
+    </div>
+    <button class="modal-close" style="width:24px;height:24px" onclick="toggleChat()">×</button>
+  </div>
+  <div class="chat-body" id="chat-chat-body">
+    <div class="msg msg-bot">Hi there! I'm the Hirecraft assistant. Looking for a specific role or need help with your profile?</div>
+  </div>
+  <form class="chat-footer" onsubmit="handleChatSubmit(event)">
+    <input type="text" class="chat-input" id="chat-input" placeholder="Ask about jobs, salaries..." autocomplete="off">
+    <button type="submit" class="btn-chat-send">↑</button>
+  </form>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
